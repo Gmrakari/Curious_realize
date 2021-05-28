@@ -1,0 +1,193 @@
+set nocompatible              " be iMproved, required
+filetype off                  " required
+
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+" alternatively, pass a path where Vundle should install plugins
+"call vundle#begin('~/some/path/here')
+
+" let Vundle manage Vundle, required
+Plugin 'VundleVim/Vundle.vim'
+
+" The following are examples of different formats supported.
+" Keep Plugin commands between vundle#begin/end.
+" plugin on GitHub repo
+" plugin from http://vim-scripts.org/vim/scripts.html
+Plugin 'Valloric/YouCompleteMe'
+Plugin 'Kien/rainbow_parentheses.vim'
+Plugin 'jiangmiao/auto-pairs'
+Plugin 'Vim-airline'
+" Plugin 'L9'
+" Git plugin not hosted on GitHub
+" The sparkup vim script is in a subdirectory of this repo called vim.
+" Pass the path to set the runtimepath properly.
+" Install L9 and avoid a Naming conflict if you've already installed a
+" different version somewhere else.
+" Plugin 'ascenator/L9', {'name': 'newL9'}
+
+" All of your Plugins must be added before the following line
+call vundle#end()            " required
+filetype plugin indent on    " required
+" To ignore plugin indent changes, instead use:
+"filetype plugin on
+"
+" Brief help
+" :PluginList       - lists configured plugins
+" :PluginInstall    - installs plugins; append `!` to update or just :PluginUpdate
+" :PluginSearch foo - searches for foo; append `!` to refresh local cache
+" :PluginClean      - confirms removal of unused plugins; append `!` to auto-approve removal
+"
+" see :h vundle for more details or wiki for FAQ
+" Put your non-Plugin stuff after this line
+
+"以上是Vundle的配置信息
+
+"Date:2021-01-27_更新YCM配置
+
+" 寻找全局配置文件
+let g:ycm_global_ycm_extra_conf = '~/.vim/bundle/YouCompleteMe/cpp/ycm/.ycm_extra_conf.py'
+" 禁用syntastic来对python检查
+let g:syntastic_ignore_files=[".*\.py$"] 
+" 使用ctags生成的tags文件
+let g:ycm_collect_identifiers_from_tag_files = 1
+" 开启语义补全
+" 修改对C语言的补全快捷键，默认是CTRL+space，修改为ALT+;未测出效果
+let g:ycm_key_invoke_completion = '<M-;>'
+" 设置转到定义处的快捷键为ALT+G，未测出效果
+"nmap <M-g> :YcmCompleter GoToDefinitionElseDeclaration <C-R>=expand("<cword>")<CR><CR> 
+"关键字补全
+let g:ycm_seed_identifiers_with_syntax = 1
+" 在接受补全后不分裂出一个窗口显示接受的项
+set completeopt-=preview
+" 让补全行为与一般的IDE一致
+set completeopt=longest,menu
+" 不显示开启vim时检查ycm_extra_conf文件的信息
+let g:ycm_confirm_extra_conf=0
+" 每次重新生成匹配项，禁止缓存匹配项
+let g:ycm_cache_omnifunc=0
+" 在注释中也可以补全
+let g:ycm_complete_in_comments=1
+" 输入第一个字符就开始补全
+let g:ycm_min_num_of_chars_for_completion=1
+" 错误标识符
+let g:ycm_error_symbol='>>'
+" 警告标识符
+let g:ycm_warning_symbol='>*'
+" 不查询ultisnips提供的代码模板补全，如果需要，设置成1即可
+let g:ycm_use_ultisnips_completer=1
+"
+let g:ycm_show_diagnostics_ui = 1                           " 禁用语法检查
+
+" All system-wide defaults are set in $VIMRUNTIME/debian.vim and sourced by
+" the call to :runtime you can find below.  If you wish to change any of those
+" settings, you should do it in this file (/etc/vim/vimrc), since debian.vim
+" will be overwritten everytime an upgrade of the vim packages is performed.
+" It is recommended to make changes after sourcing debian.vim since it alters
+" the value of the 'compatible' option.
+
+runtime! debian.vim
+
+" Vim will load $VIMRUNTIME/defaults.vim if the user does not have a vimrc.
+" This happens after /etc/vim/vimrc(.local) are loaded, so it will override
+" any settings in these files.
+" If you don't want that to happen, uncomment the below line to prevent
+" defaults.vim from being loaded.
+" let g:skip_defaults_vim = 1
+
+" Uncomment the next line to make Vim more Vi-compatible
+" NOTE: debian.vim sets 'nocompatible'.  Setting 'compatible' changes numerous
+" options, so any other options should be set AFTER setting 'compatible'.
+"set compatible
+
+" Vim5 and later versions support syntax highlighting. Uncommenting the next
+" line enables syntax highlighting by default.
+if has("syntax")
+  syntax on
+endif
+
+" If using a dark background within the editing area and syntax highlighting
+" turn on this option as well
+"set background=dark
+
+" Uncomment the following to have Vim jump to the last position when
+" reopening a file
+"au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+
+" Uncomment the following to have Vim load indentation rules and plugins
+" according to the detected filetype.
+"filetype plugin indent on
+
+" The following are commented out as they cause vim to behave a lot
+" differently from regular Vi. They are highly recommended though.
+"set showcmd		" Show (partial) command in status line.
+"set showmatch		" Show matching brackets.
+"set ignorecase		" Do case insensitive matching
+"set smartcase		" Do smart case matching
+"set incsearch		" Incremental search
+"set autowrite		" Automatically save before commands like :next and :make
+"set hidden		" Hide buffers when they are abandoned
+"set mouse=a		" Enable mouse usage (all modes)
+
+set number 
+set autoindent " 自动缩进
+
+set tabstop=2	 " tab键的空格数
+set softtabstop=2	 " tab键的一个制表符
+set shiftwidth=2 "自动缩进空白字符个数
+set cindent				" C 自动缩进
+set showmatch
+
+
+" Source a global configuration file if available
+if filereadable("/etc/vim/vimrc.local")
+  source /etc/vim/vimrc.local
+endif
+
+
+"添加头文件
+map <F5> :call HeadFile()<CR>
+function HeadFile()
+    call append(0,"#include <stdio.h>")
+    call append(1,"#include <unistd.h>")
+    call append(2,"#include <stdlib.h>")
+    call append(3,"#include <sys/types.h>")
+    call append(4,"#include <sys/stat.h>")
+    call append(5,"#include <string.h>")
+    call append(6,"")
+	call append(7,"int main(int argc,const char* argv[])")
+	call append(8,"{")
+	call append(9,"")
+	call append(10,"}")
+    echohl WarningMsg | echo "Successful in adding copyright." | echohl None
+endf
+
+map <F6> :call CPPHEADFILE()<CR>
+function CPPHEADFILE()
+	call append(0,"#include <iostream>")
+	call append(1,"using namespace std;")
+	call append(3,"")
+    echohl WarningMsg | echo "Successful in adding copyright." | echohl None
+endf
+
+map <F7> :call Intmainfile()<CR>
+function Intmainfile()
+	call append(4,"int main(int argc,const char* argv[])")
+	call append(5,"{")
+	call append(6,"")
+	call append(7,"}")
+	echohl WarningMsg | echo "Successful in adding file" | echohl None
+endf
+
+autocmd BufNewFile *.cpp,*.c,*h exec ":call SetTime()"
+map <F8> :call SetTime()<CR>
+function SetTime()
+	call append(line("."),"")
+	call append(line(".")+1,"/*")
+	call append(line(".")+2," * Date:".strftime("%F %R"))
+	call append(line(".")+3," * filename:".expand('%:t'))
+	call append(line(".")+4," *")
+	call append(line(".")+5," */")
+	echohl WarningMsg | echo "file" | echohl None
+endfunc
+autocmd BufNewFile * normal G
