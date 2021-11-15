@@ -1,0 +1,82 @@
+
+当多个线程访问共享资源，需要加锁，如果锁使用不当，就会造成死锁这种现象
+如果线程死锁造成的后果是:
+所有的线程都被阻塞，并且线程的阻塞是无法解开的(因为可以解锁的线程也被阻塞了)
+
+造成死锁的场景:
+1、加锁之后忘记解锁
+void func() {
+	for (int i = 0; i < 6;i++) {
+		//当线程A加锁成功，当前循环完毕没有解锁，在下一轮循环的时候自己被阻塞了
+		pthread_mutex_lock(&mutex);
+		...
+		...
+		//忘记解锁
+	}
+}
+
+2、
+void func2() {
+	for (int i = 0;i < 6;++i) {
+		//当前线程A加锁成功
+		//其余的线程被阻塞
+		pthread_mutex_lock(&mutex);
+		...
+		...
+		if (xxx) {
+			//函数退出，没有解锁(解锁函数无法被执行了)
+			return ;
+		}
+		pthread_mutex_lock(&mutex);
+	}
+}
+
+3、重复加锁，造成死锁
+void fun3() {
+	for (int i = 0; i < 6;++i) {
+		//当前线程A加锁成功
+		//其余的线程阻塞
+		pthread_mutex_lock(&mutex);
+		//锁被锁住，A线程阻塞
+		pthread_mutex_lock(&mutex);
+
+		..
+		...
+		pthread_mutex_unlock(&mutex);
+	}
+}
+
+//隐藏比较深的情况
+void funa() {
+	for (int i = 0;i < 6;++i) {
+		//当前线程A加锁成功
+		//其余的线程阻塞
+		pthread_mutex_lock(&mutex);
+		...
+		...
+		pthread_mutex_unlock(&mutex);
+	}
+}
+
+void funb() {
+	for (int i = 0;i < 6;++i) {
+		//当前线程A加锁成功
+		//其余的线程阻塞
+		pthread_mutex_lock(&mutex);
+		funca();//重复加锁
+		...
+		...
+		pthread_mutex_unlock(&mutex);
+	}
+}
+
+
+在程序中有多个共享资源，因此有很多把锁，随意加锁，导致相互被阻塞
+
+如何避免死锁:
+1、避免多次锁定，多检查
+2、对共享资源访问完毕之后，一定要解锁，或者在加锁的时候使用trylock
+3、如果程序中有多把锁，可以控制对锁的访问顺序(顺序访问共享资源，但在有些情况下是做不到的)
+	另外也可以在对其他互斥锁做加锁操作之前，先释放当前线程拥有的互斥锁
+4、项目程序中可以引入一些专门用于死锁检测的模块
+
