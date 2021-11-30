@@ -184,6 +184,119 @@ namespace jj04 {
 	}
 }
 
+#include <cstddef>
+#include <iostream>
+
+namespace jj05 {
+	//per-class allocator
+	class Airplane { //支援customized memory management
+	private:
+		struct AirplaneRep {
+			unsigned long miles;
+			char type;
+		};
+	private:
+		union {
+			AirplaneRep rep;//used object
+			Airplane* next;//free list
+		};
+
+	public:
+		unsigned long getMiles() {
+			return rep.miles;
+		}
+		char getType() {
+			return rep.type;
+		}
+		void set(unsigned long m, char t) {
+			rep.miles = m;
+			rep.type = t;
+		}
+
+	public:
+		static void* operator new(size_t size);
+		static void operator delete(void* deadObject, size_t size);
+
+	private:
+		static const int BLOCK_SIZE;
+		static Airplane* headOfFreeList;
+	};
+
+	Airplane* Airplane::headOfFreeList;
+	const int Airplane::BLOCK_SIZE = 512;
+
+	void* Airplane::operator new(size_t size) {
+		//如果大小错误，转交给::operator new()
+		if (size != sizeof(Airplane))
+			return ::operator new(size);
+
+		Airplane* p = headOfFreeList;
+
+		//如果p有效，就把list头部移往下一个元素
+		if (p) 
+			headOfFreeList = p->next;
+		else {
+			//free list 已空，配置一块够大记忆体
+			//令足够容纳BLOCK_SIZE个airplanes
+			Airplane* newBlock = static_cast<Airplane*>(::operator new(BLOCK_SIZE * sizeof(Airplane)));
+			//组成一个新的free list:将小区块串在一起，
+			//但跳过#0元素，因为要将它传回给呼叫者
+			for (int i = 1;i < BLOCK_SIZE - 1; ++i) 
+				newBlock[i].next = &newBlock[i + 1];
+			newBlock[BLOCK_SIZE - 1].next  = 0;//以NULL结束
+
+			//将p设至头部，将headOfFreeList设至下一个可被运用的小区块
+			p = newBlock;
+			headOfFreeList = &newBlock[1];
+		}
+		return p;
+	}
+
+	//operator delete 截获一块记忆体
+	//如果它的大小正确，就把它加到free list的前端
+	void Airplane::operator delete(void* deadObject, size_t size) {
+		if (deadObject == 0)
+			return ;
+
+		if (size != sizeof(Airplane)) {
+			::operator delete(deadObject);
+			return ;
+		}
+
+		Airplane *carcass = static_cast<Airplane*>(deadObject);
+		carcass->next = headOfFreeList;
+		headOfFreeList = carcass;
+	}
+
+	void test_per_class_allocator_2() {
+		cout << "\ntest_per_class_allocator_2()..\n";
+		cout << "sizeof(Airplane):" << sizeof(Airplane) << endl;
+		size_t const N = 100;
+
+		Airplane* p[N];
+
+		for (int i = 0;i < (int)N;++i)
+			p[i] = new Airplane;
+
+		//随机测试object 是否正常
+		p[1]->set(1000, 'A');
+		p[2]->set(2000, 'B');
+		p[3]->set(50000, 'C');
+
+		cout << p[1] << ' ' << p[1]->getType() << ' ' << p[1]->getMiles() << endl;
+		cout << p[3] << ' ' << p[3]->getType() << ' ' << p[3]->getMiles() << endl;
+		cout << p[5] << ' ' << p[5]->getType() << ' ' << p[5]->getMiles() << endl;
+		cout << p[9] << ' ' << p[9]->getType() << ' ' << p[9]->getMiles() << endl;
+
+		//输出前10个pointers, 用以比较其间隔
+		for (int i = 0;i < 10; ++i)
+			cout << p[i] << endl;
+
+		for (int i = 0;i < (int)N; ++i)
+			delete p[i];
+	}
+}
+
 
 int main(int argc, char* argv[]) {
 	cout << __cplusplus << endl;
@@ -191,5 +304,7 @@ int main(int argc, char* argv[]) {
 	//jj01::test_primitives();
 	//jj02::test_call_ctor_directly();
 	//jj03::test_array_new_and_placement_new();
-	jj04::test_pre_class_allocator_1();
+	//jj04::test_pre_class_allocator_1();
+	jj05::test_per_class_allocator_2();
+
 }
