@@ -297,6 +297,82 @@ namespace jj05 {
 	}
 }
 
+#include <cstddef>
+#include <iostream>
+#include <string>
+namespace jj06 {
+	class Foo {
+	public:
+		int _id;
+		long _data;
+		string _str;
+
+	public:
+		static void* operator new(size_t size);
+		static void operator delete(void* deadObject, size_t size);
+		static void* operator new[](size_t size);
+		static void operator delete[](void* deadObject, size_t size);
+
+		Foo() : _id(0) {
+			cout << "default ctor. this=" << this << " id=" << _id << endl;
+		}
+
+		Foo(int i) : _id(i) {
+			cout << "ctor. this=" << this << " id=" << _id << endl;
+		}
+
+		~Foo() {
+			cout << "dtor. this=" << this << " id=" << _id << endl;
+		}
+
+	};
+	void* Foo::operator new(size_t size) {
+		Foo* p = (Foo*)malloc(size);
+		cout << "Foo::operator new(), size=" << size << "\t return: " << p << endl;
+		return p;
+	}
+
+	void Foo::operator delete(void* pdead, size_t size) {
+		cout << "Foo::operator delete(), pdead = " << pdead << " size=" << size << endl;
+		free(pdead);
+	}
+
+	void* Foo::operator new[](size_t size) {
+		Foo* p = (Foo*)malloc(size);
+		cout << "Foo::operator new[](), size=" << size << "\t return: " << p << endl;
+		return p;
+	}
+
+	void Foo::operator delete[](void *pdead, size_t size) {
+		cout << "Foo::operator delete[], pdead = " << pdead << " size=" << size << endl;
+		free(pdead);
+	}
+
+	void test_overload_operator_new_and_array_new() {
+		cout << "test_overload_operator_new_and_array_new\n";
+
+		cout << "sizeof(Foo):" << sizeof(Foo) << endl;
+
+		{
+			Foo* p = new Foo(7);
+			delete p;
+
+			Foo* pArray = new Foo[5];
+			delete[] pArray;
+		}
+
+		{
+			cout << "testing global expression ::new and ::new[]\n";
+
+			Foo* p = ::new Foo(7);
+			::delete p;
+
+			Foo* pArray = ::new Foo[5];
+			::delete[] pArray;
+		}
+	}
+}
+
 
 int main(int argc, char* argv[]) {
 	cout << __cplusplus << endl;
@@ -305,6 +381,7 @@ int main(int argc, char* argv[]) {
 	//jj02::test_call_ctor_directly();
 	//jj03::test_array_new_and_placement_new();
 	//jj04::test_pre_class_allocator_1();
-	jj05::test_per_class_allocator_2();
+	//jj05::test_per_class_allocator_2();
+	jj06::test_overload_operator_new_and_array_new();
 
 }
